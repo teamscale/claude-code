@@ -1,0 +1,14 @@
+{
+  "name": "teamscale-plugins",
+  "owner": {
+    "name": "CQSE GmbH / Teamscale",
+    "email": "support@teamscale.com"
+  },
+  "plugins": [
+    {
+      "name": "teamscale",
+      "source": "./plugins/teamscale",
+      "description": "Integrates Teamscale with Claude Code for detection and resolution of quality issues and test gaps. Additionally provides change-based test selection to allow running a small set of regression tests."
+    }
+  ]
+}

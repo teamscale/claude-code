@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "teamscale": {
+      "command": "teamscale-dev",
+      "args": [
+        "mcp"
+      ],
+      "mcpConnectionTimeout": 60000
+    }
+  }
+}

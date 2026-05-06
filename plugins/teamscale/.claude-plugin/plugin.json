@@ -1,0 +1,8 @@
+{
+  "name": "teamscale",
+  "description": "Skills and MCP configuration to interact with Teamscale. Detection and resolution of quality issues and test gaps. Change-based test selection to allow running a small set of regression tests.",
+  "author": {
+    "name": "CQSE GmbH / Teamscale",
+    "email": "support@teamscale.com"
+  }
+}
