@@ -88,7 +88,8 @@ Do **not** echo `$TEAMSCALE_DEV_USER` or `$TEAMSCALE_DEV_ACCESSKEY`, do not pass
 
 If either variable is missing, instruct the user:
 
-1. Obtain an access key by opening the Teamscale server in a browser, clicking the avatar in the upper right corner, and choosing **Access Keys**.
+1. Obtain an access key from Teamscale, by visiting the URL "<URL>/user/access-key", where "<URL>" is the `[server].url` field from `.teamscale.toml`.
+   Alternatively, the user can open the Teamscale server in a browser, click the avatar in the upper right corner, and choose **Access Keys**.
 2. Set the variables in their shell profile (e.g. `~/.bashrc`, `~/.zshrc`) on Linux/macOS:
 
    ```bash

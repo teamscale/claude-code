@@ -26,6 +26,13 @@ The marketplace is hosted on GitHub at
    /reload-plugins
    ```
 
+4. Test installation and project setup
+
+   ```
+   /teamscale:check-setup
+   ```
+
+
 You can also browse and install plugins through the interactive UI by running
 `/plugin` and switching to the **Discover** tab.
 
@@ -38,7 +45,7 @@ You can also browse and install plugins through the interactive UI by running
 ## Requirements
 
 The plugins in this marketplace integrate with a running Teamscale instance and
-rely on the [`teamscale-dev`](https://docs.teamscale.com/howto/integrating-with-development/teamscale-dev/)
+rely on the [`teamscale-dev`](https://docs.teamscale.com/reference/cli/teamscale-dev/)
 CLI. See the individual plugin README for the exact prerequisites and setup
 steps.
 

@@ -1,6 +1,6 @@
 ---
 name: pr-close-test-gaps
-description: Fetch test-gap information for the current branch (PR-scoped if a merge request exists, branch-vs-base otherwise) and generate tests to close the gaps.
+description: Fetch test-gap information for the current branch (PR-scoped if a pull request exists, branch-vs-base otherwise) and generate tests to close the gaps.
 disable-model-invocation: true
 ---
 
@@ -20,10 +20,10 @@ that are not yet covered.
    The helper prints a one-paragraph resolution banner on stderr telling
    you which mode it resolved to:
 
-   - `resolved as merge request <id>` — an open merge request was found
-     for the current branch; test gaps are scoped to that MR.
-   - `no merge request for branch '<name>'; comparing against base` —
-     no MR matched; the current branch is compared against the
+   - `resolved as pull request <id>` — an open pull request was found
+     for the current branch; test gaps are scoped to that PR.
+   - `no pull request for branch '<name>'; comparing against base` —
+     no PR matched; the current branch is compared against the
      repository's default branch (origin/HEAD, falling back to
      `master`/`main`).
 

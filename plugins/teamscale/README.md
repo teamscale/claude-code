@@ -22,16 +22,16 @@ Most skills below are configured with `disable-model-invocation: true`, so
 Claude will never trigger them on its own — you have to invoke each one
 explicitly with the slash-command syntax shown.
 
-| Skill                                | Source                | Scope                                              |
-|--------------------------------------|-----------------------|----------------------------------------------------|
-| `/teamscale:check-setup`             | Local environment     | Python, `teamscale-dev`, `.teamscale.toml`, creds  |
-| `/teamscale:pr-fix-findings`         | Teamscale PR view     | open MR for current branch, else branch vs. base   |
-| `/teamscale:pr-close-test-gaps`      | Teamscale PR view     | open MR for current branch, else branch vs. base   |
-| `/teamscale:fix-findings <files>`    | Server analysis       | listed files                                       |
-| `/teamscale:local-fix-findings`      | Pre-commit analysis   | local uncommitted changes                          |
+| Skill                                | Source                | Scope                                             |
+|--------------------------------------|-----------------------|---------------------------------------------------|
+| `/teamscale:check-setup`             | Local environment     | Python, `teamscale-dev`, `.teamscale.toml`, creds |
+| `/teamscale:pr-fix-findings`         | Teamscale PR view     | open PR for current branch, else branch vs. base  |
+| `/teamscale:pr-close-test-gaps`      | Teamscale PR view     | open PR for current branch, else branch vs. base  |
+| `/teamscale:fix-findings <files>`    | Server analysis       | listed files                                      |
+| `/teamscale:local-fix-findings`      | Pre-commit analysis   | local uncommitted changes                         |
 
 The `pr-` prefix means the skill operates on the open pull request whose
-source branch is the current Git branch. If no such MR exists, the helper
+source branch is the current Git branch. If no such PR exists, the helper
 falls back to comparing the current branch against the repository's default
 branch (`origin/HEAD`, then local `master`/`main`).
 The `local-` prefix means the skill operates on uncommitted edits in the

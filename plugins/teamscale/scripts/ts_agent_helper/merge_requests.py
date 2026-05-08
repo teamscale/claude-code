@@ -1,7 +1,7 @@
 """Merge-request lookup helpers.
 
 Pure functions; no CLI subcommand is exposed. Callers are
-`ts_agent_helper.pr_context` (resolves the unique open MR for a branch
+`ts_agent_helper.pr_context` (resolves the unique open PR for a branch
 during PR-context detection).
 """
 
@@ -93,7 +93,7 @@ def resolve_unique_merge_request(
         return None
     if len(matches) > 1:
         raise SystemExit(
-            f"error: multiple open merge requests found for source branch "
+            f"error: multiple open pull requests found for source branch "
             f"'{branch}' ({len(matches)}); cannot disambiguate automatically"
         )
     return matches[0]

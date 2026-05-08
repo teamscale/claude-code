@@ -113,8 +113,8 @@ def _build_parser() -> argparse.ArgumentParser:
         help="list newly added findings for the current branch's PR (or branch vs base)",
         description=(
             "Fetch the findings newly added on the current Git branch. If "
-            "exactly one open merge request has the current branch as its "
-            "source, the comparison is made against that MR's target "
+            "exactly one open pull request has the current branch as its "
+            "source, the comparison is made against that PR's target "
             "branch. Otherwise the current branch is compared against the "
             "repository's default branch (origin/HEAD, falling back to "
             "local 'master' or 'main'). The resolved mode is printed as a "
@@ -207,7 +207,7 @@ def _build_parser() -> argparse.ArgumentParser:
         "for-pr",
         help="fetch the test-gap CSV for the current branch's PR (or branch vs base)",
         description=(
-            "Resolve the PR context for the current Git branch (open merge "
+            "Resolve the PR context for the current Git branch (open pull "
             "request if one exists, otherwise comparison against the "
             "repository's default branch) and fetch the test-gap CSV from "
             "the Teamscale '/test-gaps.csv' endpoint in merge-request mode "

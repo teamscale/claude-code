@@ -1,6 +1,6 @@
 ---
 name: pr-fix-findings
-description: Fetch findings introduced on the current branch from Teamscale (PR-scoped if a merge request exists, branch-vs-base otherwise) and fix them.
+description: Fetch findings introduced on the current branch from Teamscale (PR-scoped if a pull request exists, branch-vs-base otherwise) and fix them.
 disable-model-invocation: true
 ---
 
@@ -21,10 +21,10 @@ report a summary at the end.
    The helper prints a one-paragraph resolution banner on stderr telling
    you which mode it resolved to:
 
-   - `resolved as merge request <id>` — an open merge request was found
-     for the current branch; findings are scoped to that MR.
-   - `no merge request for branch '<name>'; comparing against base` —
-     no MR matched; findings are computed by comparing the current
+   - `resolved as pull request <id>` — an open pull request was found
+     for the current branch; findings are scoped to that PR.
+   - `no pull request for branch '<name>'; comparing against base` —
+     no PR matched; findings are computed by comparing the current
      branch against the repository's default branch (origin/HEAD,
      falling back to `master`/`main`).
 

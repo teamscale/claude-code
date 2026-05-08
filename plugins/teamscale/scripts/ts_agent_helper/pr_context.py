@@ -159,7 +159,7 @@ def resolve_pr_context(
 
         if not source_branch or not target_branch:
             raise SystemExit(
-                f"error: merge request for '{branch}' is missing source or "
+                f"error: pull request for '{branch}' is missing source or "
                 f"target branch information"
             )
         return PrContext(
@@ -191,11 +191,11 @@ def print_resolution_banner(ctx: PrContext) -> None:
     """
     if ctx.mode == "merge-request":
         sys.stderr.write(
-            f"ts-agent-helper: resolved as merge request {ctx.merge_request_id}\n"
+            f"ts-agent-helper: resolved as pull request {ctx.merge_request_id}\n"
         )
     else:
         sys.stderr.write(
-            f"ts-agent-helper: no merge request for branch '{ctx.branch}'; "
+            f"ts-agent-helper: no pull request for branch '{ctx.branch}'; "
             f"comparing against base\n"
         )
     sys.stderr.write(f"  source={ctx.source} target={ctx.target}\n")
