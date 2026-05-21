@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Resolve the real location of this script, following symlinks.
+SOURCE="${BASH_SOURCE[0]}"
+while [ -L "$SOURCE" ]; do
+    DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+    SOURCE="$(readlink "$SOURCE")"
+    [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE"
+done
+SCRIPT_DIR="$(cd -P "$(dirname "$SOURCE")" && pwd)"
+SCRIPTS_DIR="$SCRIPT_DIR/../scripts"
+
+if command -v python3 >/dev/null 2>&1; then
+    PYTHON=python3
+elif command -v python >/dev/null 2>&1; then
+    PYTHON=python
+else
+    echo "Error: neither 'python3' nor 'python' found in PATH" >&2
+    exit 1
+fi
+
+# The plugin documents 3.9+ as the minimum (see plugin README and the
+# check-setup skill). Enforce it here so the MCP server fails with a
+# clear error instead of a cryptic import/syntax failure later.
+if ! "$PYTHON" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)'; then
+    PYTHON_VERSION="$("$PYTHON" -c 'import sys; print("%d.%d.%d" % sys.version_info[:3])' 2>/dev/null || echo 'unknown')"
+    echo "Error: ts-teamscale-dev requires Python 3.9 or newer (found $PYTHON_VERSION via '$PYTHON')." >&2
+    echo "Install a newer Python and ensure 'python3' on PATH points to it." >&2
+    exit 1
+fi
+
+# The launcher reads `~/.teamscale-dev.args`, translates `--server`,
+# `--user` and `--accesskey` into the corresponding `TEAMSCALE_DEV_*`
+# environment variables, and then execs `teamscale-dev` with the
+# original arguments. This works around `teamscale-dev mcp` not
+# accepting those options on its subcommand.
+PYTHONPATH="$SCRIPTS_DIR${PYTHONPATH:+:$PYTHONPATH}" exec "$PYTHON" -m ts_agent_helper.mcp_launcher "$@"

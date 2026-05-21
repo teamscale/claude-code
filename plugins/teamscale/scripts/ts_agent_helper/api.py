@@ -6,7 +6,6 @@ import base64
 import functools
 import json
 import os
-import shlex
 import ssl
 import subprocess
 import sys
@@ -16,6 +15,8 @@ import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional
+
+from . import args_file
 
 
 # Page size used internally when paging through results. The server caps a
@@ -35,14 +36,6 @@ SERVERS_ENV = "TEAMSCALE_DEV_SERVERS"
 # Fragment in a credentials URL that opts the server out of TLS verification,
 # matching the CLI's `CredentialsUrlUtils` constant of the same name.
 _TRUST_ALL_CERTIFICATES_FRAGMENT = "trust-all-certificates"
-
-# Default location of the `teamscale-dev` args file. The CLI normally expects
-# the user to reference this file explicitly via picocli's `@<path>` syntax;
-# the helper reads it as a fallback when the environment doesn't carry
-# credentials. The location is fixed to the home directory to match the CLI
-# documentation; there is no environment-variable override.
-_ARGS_FILE_NAME = ".teamscale-dev.args"
-
 
 @dataclass(frozen=True)
 class TeamscaleCredentials:
@@ -100,7 +93,7 @@ def get_credentials(server_url: str) -> TeamscaleCredentials:
         f"error: no credentials configured for Teamscale server <{server_url}>. "
         f"Set {USER_ENV} and {ACCESSKEY_ENV}, or include the server in "
         f"{SERVERS_ENV}, or place equivalent `--server`/`--user`/`--accesskey` "
-        f"options in ~/{_ARGS_FILE_NAME}."
+        f"options in ~/{args_file.ARGS_FILE_NAME}."
     )
 
 
@@ -133,42 +126,18 @@ def _read_args_file(
     """Parse `--server`, `--user` and `--accesskey` from the args file.
 
     Returns `(servers, fallback_user, fallback_accesskey)`. When the file is
-    absent, all three are empty. Other options recognized by the CLI (e.g.
-    `--insecure`, `--proxy`) are silently ignored — the helper only consumes
-    credential-related options.
+    absent, all three are empty.
     """
     if path is None:
-        path = Path.home() / _ARGS_FILE_NAME
+        path = args_file.default_args_file_path()
     if not path.is_file():
         return {}, None, None
-
-    try:
-        content = path.read_text(encoding="utf-8")
-    except OSError as e:
-        raise SystemExit(f"error: failed to read {path}: {e}") from e
-
-    # Picocli's at-file syntax treats `#` as a line comment only at the
-    # start of a line. Strip those lines ourselves rather than passing
-    # `comments=True` to `shlex.split`, which would also eat `#` mid-token
-    # and break URL fragments like `#trust-all-certificates`.
-    stripped = "\n".join(
-        line for line in content.splitlines() if not line.lstrip().startswith("#")
-    )
-    try:
-        tokens = shlex.split(stripped, comments=False)
-    except ValueError as e:
-        raise SystemExit(f"error: failed to parse {path}: {e}") from e
 
     servers: dict[str, TeamscaleCredentials] = {}
     fallback_user: Optional[str] = None
     fallback_accesskey: Optional[str] = None
 
-    i = 0
-    while i < len(tokens):
-        name, value, consumed = _read_option(tokens, i, path)
-        i += consumed
-        if value is None:
-            continue
+    for name, value in args_file.iter_credential_options(path):
         if name == "--server":
             normalized, credentials = _parse_credentials_url(value)
             existing = servers.get(normalized)
@@ -184,34 +153,6 @@ def _read_args_file(
             fallback_accesskey = value
 
     return servers, fallback_user, fallback_accesskey
-
-
-# Options the helper consumes from the args file. Anything else is ignored.
-_ARGS_FILE_VALUE_OPTIONS = frozenset({
-    "--server", "--user", "-u", "--accesskey", "-k",
-})
-
-
-def _read_option(
-    tokens: list[str], i: int, path: Path
-) -> tuple[str, Optional[str], int]:
-    """Return `(name, value, tokens_consumed)` for the option at `tokens[i]`.
-
-    Supports `--option=VALUE` and `--option VALUE` forms (the latter pulls
-    the next token). `value` is `None` for options the helper does not
-    consume; the caller advances by `tokens_consumed` either way.
-    """
-    token = tokens[i]
-    name, equals, embedded = token.partition("=")
-    if name not in _ARGS_FILE_VALUE_OPTIONS:
-        return name, None, 1
-    if equals:
-        return name, embedded, 1
-    if i + 1 >= len(tokens):
-        raise SystemExit(
-            f"error: {path}: option {name} is missing its argument."
-        )
-    return name, tokens[i + 1], 2
 
 
 def _parse_credentials_url(raw: str) -> tuple[str, TeamscaleCredentials]:

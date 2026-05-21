@@ -1,7 +1,7 @@
 {
   "mcpServers": {
     "teamscale": {
-      "command": "teamscale-dev",
+      "command": "${CLAUDE_PLUGIN_ROOT}/bin/teamscale-dev-mcp",
       "args": [
         "mcp"
       ],
