@@ -11,7 +11,7 @@ import re
 import urllib.parse
 from typing import Any, Optional
 
-from .api import PAGE_SIZE, api_request
+from .api import PAGE_SIZE, TeamscaleCredentials, api_request
 from .config import TeamscaleConfig
 
 
@@ -26,7 +26,7 @@ def _regex_escape_for_java(value: str) -> str:
 
 
 def find_merge_requests_for_branch(
-    config: TeamscaleConfig, user: str, key: str, branch: str
+    config: TeamscaleConfig, credentials: TeamscaleCredentials, branch: str
 ) -> list[dict[str, Any]]:
     """Return the list of open merge requests whose `sourceBranch == branch`.
 
@@ -47,8 +47,7 @@ def find_merge_requests_for_branch(
         response = api_request(
             config.server_url,
             api_path,
-            user,
-            key,
+            credentials,
             params={
                 "filter": server_filter,
                 "status": "OPEN",
@@ -80,7 +79,7 @@ def find_merge_requests_for_branch(
 
 
 def resolve_unique_merge_request(
-    config: TeamscaleConfig, user: str, key: str, branch: str
+    config: TeamscaleConfig, credentials: TeamscaleCredentials, branch: str
 ) -> Optional[dict[str, Any]]:
     """Return the single open MR for `branch`, or `None` if none exists.
 
@@ -88,7 +87,7 @@ def resolve_unique_merge_request(
     cannot proceed without disambiguation, and silently picking one would
     hide the problem.
     """
-    matches = find_merge_requests_for_branch(config, user, key, branch)
+    matches = find_merge_requests_for_branch(config, credentials, branch)
     if not matches:
         return None
     if len(matches) > 1:

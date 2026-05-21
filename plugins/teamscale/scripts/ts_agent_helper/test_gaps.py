@@ -75,8 +75,6 @@ def _filter_test_gap_csv(csv_text: str) -> str:
 
 def cmd_test_gaps_for_pr(args: argparse.Namespace) -> int:
     """Resolve PR context and emit the test-gap CSV for changed code."""
-    user, key = get_credentials()
-
     config_dir = (
         Path(args.config_dir).resolve(strict=False) if args.config_dir else Path.cwd()
     )
@@ -87,8 +85,9 @@ def cmd_test_gaps_for_pr(args: argparse.Namespace) -> int:
     except ConfigError as e:
         raise SystemExit(f"error: {e}") from e
 
+    credentials = get_credentials(config.server_url)
     git_root = repo_root(config_dir)
-    ctx = resolve_pr_context(config, user, key, git_root)
+    ctx = resolve_pr_context(config, credentials, git_root)
     print_resolution_banner(ctx)
 
     api_path = (
@@ -115,7 +114,7 @@ def cmd_test_gaps_for_pr(args: argparse.Namespace) -> int:
         params["merge-request-identifier"] = ctx.merge_request_id
 
     csv_text = api_request_text(
-        config.server_url, api_path, user, key, params=params
+        config.server_url, api_path, credentials, params=params
     )
 
     sys.stdout.write(_filter_test_gap_csv(csv_text))

@@ -12,7 +12,7 @@ is resolved (the user may want to fix it and re-run the skill).
 
 When reporting results, briefly tell the user what each check found. Do not skip steps.
 
-## Step 1: Python 3.10+
+## Step 1: Python 3.9+
 
 Run:
 
@@ -20,7 +20,7 @@ Run:
 python3 --version
 ```
 
-If `python3` is not on the PATH, or the version is below 3.10, tell the user that the Teamscale plugin requires Python 3.10 
+If `python3` is not on the PATH, or the version is below 3.9, tell the user that the Teamscale plugin requires Python 3.9 
 or newer and ask them to install it (e.g. via their package manager or from https://www.python.org/downloads/).
 
 
@@ -75,38 +75,58 @@ Inspect `maxApiVersion`. The minimum required version is **2026.2** (i.e. `major
 
 If the request fails (connection refused, timeout, non-2xx status), tell the user the server is unreachable and to verify the `url` in `.teamscale.toml` and their network/VPN connection. Stop on failure.
 
-## Step 5: Credentials in environment
+## Step 5: Credentials available
 
-Check that `TEAMSCALE_DEV_USER` and `TEAMSCALE_DEV_ACCESSKEY` are set, **without ever printing or otherwise exposing their values**. Use a presence-only check such as:
+Credentials can be supplied in three ways (matching `teamscale-dev`):
+
+- The per-server `TEAMSCALE_DEV_SERVERS` environment variable (a whitespace-separated list of `https://user:accesskey@host/path` URLs).
+- The `TEAMSCALE_DEV_USER` / `TEAMSCALE_DEV_ACCESSKEY` environment variables (used as a fallback for any server URL not covered by `TEAMSCALE_DEV_SERVERS`).
+- An args file at `~/.teamscale-dev.args` containing `--server`, `--user`, and/or `--accesskey` lines. The environment variables take precedence over the args file.
+
+At least one of these sources must provide credentials for the server URL configured in `.teamscale.toml`.
+
+Check what's available, **without ever printing or otherwise exposing the credential values**. Use presence-only checks such as:
 
 ```bash
 [ -n "${TEAMSCALE_DEV_USER+x}" ] && echo "TEAMSCALE_DEV_USER: set" || echo "TEAMSCALE_DEV_USER: not set"
 [ -n "${TEAMSCALE_DEV_ACCESSKEY+x}" ] && echo "TEAMSCALE_DEV_ACCESSKEY: set" || echo "TEAMSCALE_DEV_ACCESSKEY: not set"
+[ -n "${TEAMSCALE_DEV_SERVERS+x}" ] && echo "TEAMSCALE_DEV_SERVERS: set" || echo "TEAMSCALE_DEV_SERVERS: not set"
+[ -f "${HOME}/.teamscale-dev.args" ] && echo "~/.teamscale-dev.args: present" || echo "~/.teamscale-dev.args: missing"
 ```
 
-Do **not** echo `$TEAMSCALE_DEV_USER` or `$TEAMSCALE_DEV_ACCESSKEY`, do not pass them to other commands, and do not include them in any output to the user.
+Do **not** echo `$TEAMSCALE_DEV_USER`, `$TEAMSCALE_DEV_ACCESSKEY`, or `$TEAMSCALE_DEV_SERVERS`, do not `cat` `~/.teamscale-dev.args`, do not pass these values to other commands, and do not include them in any output to the user.
 
-If either variable is missing, instruct the user:
+If none of these sources is configured, instruct the user:
 
 1. Obtain an access key from Teamscale, by visiting the URL "<URL>/user/access-key", where "<URL>" is the `[server].url` field from `.teamscale.toml`.
    Alternatively, the user can open the Teamscale server in a browser, click the avatar in the upper right corner, and choose **Access Keys**.
-2. Set the variables in their shell profile (e.g. `~/.bashrc`, `~/.zshrc`) on Linux/macOS:
+2. Configure the credentials via **one** of the following:
 
-   ```bash
-   export TEAMSCALE_DEV_USER="<username>"
-   export TEAMSCALE_DEV_ACCESSKEY="<access-key>"
-   ```
+   - Set environment variables in their shell profile (e.g. `~/.bashrc`, `~/.zshrc`) on Linux/macOS:
 
-   On Windows follow these steps to set up a user-specific environment variable.
+     ```bash
+     export TEAMSCALE_DEV_USER="<username>"
+     export TEAMSCALE_DEV_ACCESSKEY="<access-key>"
+     ```
 
-   - Click Start button
-   - Search for Accounts
-   - Open User Accounts
-   - Go to Tasks > Change my environment variables
-   - Add a new environment called TEAMSCALE_DEV_USER with value of your username.
-   - Add a new environment called TEAMSCALE_DEV_ACCESSKEY with the value of your access key.
+     On Windows follow these steps to set up a user-specific environment variable.
 
-3. Restart the shell (and Claude Code) so the new variables are picked up.
+     - Click Start button
+     - Search for Accounts
+     - Open User Accounts
+     - Go to Tasks > Change my environment variables
+     - Add a new environment called TEAMSCALE_DEV_USER with value of your username.
+     - Add a new environment called TEAMSCALE_DEV_ACCESSKEY with the value of your access key.
+
+   - Or create `~/.teamscale-dev.args` (`%USERPROFILE%\.teamscale-dev.args` on Windows) with one option per line:
+
+     ```
+     --server https://<username>:<access-key>@<host>
+     ```
+
+     On Linux/macOS, restrict access with `chmod 600 ~/.teamscale-dev.args` so the file is only readable by the user.
+
+3. Restart the shell (and Claude Code) so any new variables are picked up.
 
 
 ## Step 6: Verify configuration against the server

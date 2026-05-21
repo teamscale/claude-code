@@ -33,8 +33,6 @@ def _build_uniform_path(config: TeamscaleConfig, target: Path) -> str:
 
 def cmd_coverage_for_file(args: argparse.Namespace) -> int:
     """Fetch line-coverage data for a single local file or directory."""
-    user, key = get_credentials()
-
     target = Path(args.path).resolve(strict=False)
     if not target.exists():
         raise SystemExit(f"error: path does not exist: {target}")
@@ -52,6 +50,7 @@ def cmd_coverage_for_file(args: argparse.Namespace) -> int:
     except ConfigError as e:
         raise SystemExit(f"error: {e}") from e
 
+    credentials = get_credentials(config.server_url)
     uniform_path = _build_uniform_path(config, target)
     api_path = (
         f"/api/projects/"
@@ -71,7 +70,7 @@ def cmd_coverage_for_file(args: argparse.Namespace) -> int:
     if branch:
         params["t"] = f"{branch}:HEAD"
 
-    response = api_request(config.server_url, api_path, user, key, params=params)
+    response = api_request(config.server_url, api_path, credentials, params=params)
     if response is None:
         sys.stdout.write("N/A\n")
         return 0

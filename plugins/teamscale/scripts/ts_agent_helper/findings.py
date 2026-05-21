@@ -38,8 +38,6 @@ def _build_uniform_path(config: TeamscaleConfig, target: Path) -> str:
 
 
 def cmd_findings_list(args: argparse.Namespace) -> int:
-    user, key = get_credentials()
-
     target = Path(args.path).resolve(strict=False)
     if not target.exists():
         raise SystemExit(f"error: path does not exist: {target}")
@@ -57,6 +55,7 @@ def cmd_findings_list(args: argparse.Namespace) -> int:
     except ConfigError as e:
         raise SystemExit(f"error: {e}") from e
 
+    credentials = get_credentials(config.server_url)
     uniform_path = _build_uniform_path(config, target)
     api_path = (
         f"/api/v{API_VERSION}/projects/"
@@ -108,7 +107,7 @@ def cmd_findings_list(args: argparse.Namespace) -> int:
             params["t"] = f"{branch}:HEAD"
 
         page = api_request(
-            config.server_url, api_path, user, key, params=params
+            config.server_url, api_path, credentials, params=params
         )
         if not isinstance(page, list):
             raise SystemExit(f"unexpected response (not a list): {page!r}")
@@ -182,8 +181,6 @@ def cmd_findings_for_pr(args: argparse.Namespace) -> int:
     branch against the repository's default branch. Only the newly added
     findings are written to stdout.
     """
-    user, key = get_credentials()
-
     config_dir = (
         Path(args.config_dir).resolve(strict=False) if args.config_dir else Path.cwd()
     )
@@ -194,8 +191,9 @@ def cmd_findings_for_pr(args: argparse.Namespace) -> int:
     except ConfigError as e:
         raise SystemExit(f"error: {e}") from e
 
+    credentials = get_credentials(config.server_url)
     git_root = repo_root(config_dir)
-    ctx = resolve_pr_context(config, user, key, git_root)
+    ctx = resolve_pr_context(config, credentials, git_root)
     print_resolution_banner(ctx)
 
     api_path = (
@@ -206,8 +204,7 @@ def cmd_findings_for_pr(args: argparse.Namespace) -> int:
     response = api_request(
         config.server_url,
         api_path,
-        user,
-        key,
+        credentials,
         params={"source": ctx.source, "target": ctx.target},
     )
 
@@ -223,8 +220,6 @@ def cmd_findings_for_pr(args: argparse.Namespace) -> int:
 
 def cmd_findings_flag(args: argparse.Namespace) -> int:
     """Flag findings as FALSE_POSITIVE or TOLERATION."""
-    user, key = get_credentials()
-
     config_dir = (
         Path(args.config_dir).resolve(strict=False) if args.config_dir else Path.cwd()
     )
@@ -235,6 +230,7 @@ def cmd_findings_flag(args: argparse.Namespace) -> int:
     except ConfigError as e:
         raise SystemExit(f"error: {e}") from e
 
+    credentials = get_credentials(config.server_url)
     branch = config.project_branch
     if not branch:
         try:
@@ -271,8 +267,7 @@ def cmd_findings_flag(args: argparse.Namespace) -> int:
     response = api_request(
         config.server_url,
         api_path,
-        user,
-        key,
+        credentials,
         method="PUT",
         params=params,
         json_body=body,
@@ -284,8 +279,6 @@ def cmd_findings_flag(args: argparse.Namespace) -> int:
 
 
 def cmd_findings_type_descriptors(args: argparse.Namespace) -> int:
-    user, key = get_credentials()
-
     config_dir = (
         Path(args.config_dir).resolve(strict=False) if args.config_dir else Path.cwd()
     )
@@ -297,6 +290,7 @@ def cmd_findings_type_descriptors(args: argparse.Namespace) -> int:
     except ConfigError as e:
         raise SystemExit(f"error: {e}") from e
 
+    credentials = get_credentials(config.server_url)
     body = _read_type_descriptors_body(args)
 
     api_path = (
@@ -307,8 +301,7 @@ def cmd_findings_type_descriptors(args: argparse.Namespace) -> int:
     response = api_request(
         config.server_url,
         api_path,
-        user,
-        key,
+        credentials,
         method="POST",
         json_body=body,
     )

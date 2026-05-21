@@ -1,7 +1,7 @@
 """Minimal TOML parser sufficient for `.teamscale.toml` v1.0.
 
 A full TOML implementation is in the standard library only as of Python 3.11
-(`tomllib`). This script targets 3.10, so we implement just the subset needed
+(`tomllib`). This script targets 3.9, so we implement just the subset needed
 here: top-level keys, `[section]` headers, dotted keys, string/bool/integer
 values, and `#` line comments.
 """

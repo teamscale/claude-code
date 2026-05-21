@@ -12,6 +12,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Optional
 
+from .api import TeamscaleCredentials
 from .config import TeamscaleConfig
 from .merge_requests import resolve_unique_merge_request
 
@@ -138,8 +139,7 @@ def _detect_default_branch(repo_dir: Path) -> str:
 
 def resolve_pr_context(
     config: TeamscaleConfig,
-    user: str,
-    key: str,
+    credentials: TeamscaleCredentials,
     repo_dir: Path,
 ) -> PrContext:
     """Resolve the PR context for the current Git branch in `repo_dir`.
@@ -150,7 +150,7 @@ def resolve_pr_context(
     MRs match (ambiguous).
     """
     branch = current_git_branch(repo_dir)
-    mr = resolve_unique_merge_request(config, user, key, branch)
+    mr = resolve_unique_merge_request(config, credentials, branch)
     if mr is not None:
         source_branch = mr.get("sourceBranch")
         target_branch = mr.get("targetBranch")
