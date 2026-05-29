@@ -2,7 +2,8 @@
 
 Skills and MCP configuration to make Teamscale's quality information
 available to Claude Code. Detect and fix findings, close test gaps on a
-pull request, and run pre-commit analysis on local changes.
+pull request, run pre-commit analysis on local changes, and select the
+tests impacted by local changes.
 
 ## Setup
 
@@ -25,10 +26,11 @@ invoked explicitly via the slash-command syntax shown.
 | Skill                                | Source                | Scope                                             | Auto-invoke |
 |--------------------------------------|-----------------------|---------------------------------------------------|-------------|
 | `/teamscale:check-setup`             | Local environment     | Python, `teamscale-dev`, `.teamscale.toml`, creds | no          |
-| `/teamscale:pr-fix-findings`         | Teamscale PR view     | open PR for current branch, else branch vs. base  | no          |
-| `/teamscale:pr-close-test-gaps`      | Teamscale PR view     | open PR for current branch, else branch vs. base  | no          |
+| `/teamscale:pr-fix-findings`         | Teamscale PR view     | open PR for current branch, else branch vs. base  | yes         |
+| `/teamscale:pr-close-test-gaps`      | Teamscale PR view     | open PR for current branch, else branch vs. base  | yes         |
 | `/teamscale:fix-findings <files>`    | Server analysis       | listed files                                      | yes         |
-| `/teamscale:local-fix-findings`      | Pre-commit analysis   | local uncommitted changes                         | no          |
+| `/teamscale:local-fix-findings`      | Pre-commit analysis   | local uncommitted changes                         | yes         |
+| `/teamscale:local-select-tests`      | Pre-commit analysis   | test suggestions for local uncommitted changes    | yes         |
 
 The `pr-` prefix means the skill operates on the open pull request whose
 source branch is the current Git branch. If no such PR exists, the helper

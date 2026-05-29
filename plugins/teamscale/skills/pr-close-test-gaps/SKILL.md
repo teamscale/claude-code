@@ -1,7 +1,6 @@
 ---
 name: pr-close-test-gaps
-description: Fetch test-gap information for the current branch (PR-scoped if a pull request exists, branch-vs-base otherwise) and generate tests to close the gaps.
-disable-model-invocation: true
+description: Fetch test-gap information for the current branch or pull request (PR-scoped if a pull request exists, branch-vs-base otherwise) and generate tests to close the gaps.
 ---
 
 # Close test gaps on the current branch
@@ -58,3 +57,7 @@ that are not yet covered.
 
 5. **Summarise.** Report which gaps were closed (with test file + test
    name) and which were skipped (with a one-sentence reason).
+
+Note: Test gaps are computed on the Teamscale server based on coverage from the CI pipeline, once the new tests have been 
+pushed to Git. Hence, fetching the test-gap information right after creating the tests does not work. Instead, instruct 
+the user to check the test-gap information once the CI pipeline has finished. 

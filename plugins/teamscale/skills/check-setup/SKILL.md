@@ -6,8 +6,8 @@ disable-model-invocation: true
 
 # Check Teamscale Setup
 
-Verify the Teamscale integration is configured correctly. Run the steps below in order. 
-If a step fails, give the user the instructions for that step and stop. Do not continue to later steps until the issue 
+Verify the Teamscale integration is configured correctly. Run the steps below in order.
+If a step fails, give the user the instructions for that step and stop. Do not continue to later steps until the issue
 is resolved (the user may want to fix it and re-run the skill).
 
 When reporting results, briefly tell the user what each check found. Do not skip steps.
@@ -20,7 +20,7 @@ Run:
 python3 --version
 ```
 
-If `python3` is not on the PATH, or the version is below 3.9, tell the user that the Teamscale plugin requires Python 3.9 
+If `python3` is not on the PATH, or the version is below 3.9, tell the user that the Teamscale plugin requires Python 3.9
 or newer and ask them to install it (e.g. via their package manager or from https://www.python.org/downloads/).
 
 
@@ -32,7 +32,7 @@ Run:
 teamscale-dev --version
 ```
 
-The required minimum version is **2026.3.0**. If the command is not found, or the version is older than 2026.3.0, point 
+The required minimum version is **2026.3.0**. If the command is not found, or the version is older than 2026.3.0, point
 the user to the installation guide at https://docs.teamscale.com/howto/integrating-with-your-ide/other-ides/#installing-teamscale-dev
 
 
@@ -102,42 +102,50 @@ If none of these sources is configured, instruct the user:
    Alternatively, the user can open the Teamscale server in a browser, click the avatar in the upper right corner, and choose **Access Keys**.
 2. Configure the credentials via **one** of the following:
 
-   - Set environment variables in their shell profile (e.g. `~/.bashrc`, `~/.zshrc`) on Linux/macOS:
+    - Set environment variables in their shell profile (e.g. `~/.bashrc`, `~/.zshrc`) on Linux/macOS:
 
-     ```bash
-     export TEAMSCALE_DEV_USER="<username>"
-     export TEAMSCALE_DEV_ACCESSKEY="<access-key>"
-     ```
+      ```bash
+      export TEAMSCALE_DEV_USER="<username>"
+      export TEAMSCALE_DEV_ACCESSKEY="<access-key>"
+      ```
 
-     On Windows follow these steps to set up a user-specific environment variable.
+      On Windows follow these steps to set up a user-specific environment variable.
 
-     - Click Start button
-     - Search for Accounts
-     - Open User Accounts
-     - Go to Tasks > Change my environment variables
-     - Add a new environment called TEAMSCALE_DEV_USER with value of your username.
-     - Add a new environment called TEAMSCALE_DEV_ACCESSKEY with the value of your access key.
+        - Click Start button
+        - Search for Accounts
+        - Open User Accounts
+        - Go to Tasks > Change my environment variables
+        - Add a new environment called TEAMSCALE_DEV_USER with value of your username.
+        - Add a new environment called TEAMSCALE_DEV_ACCESSKEY with the value of your access key.
 
-   - Or create `~/.teamscale-dev.args` (`%USERPROFILE%\.teamscale-dev.args` on Windows) with one option per line:
+    - Or create `~/.teamscale-dev.args` (`%USERPROFILE%\.teamscale-dev.args` on Windows) with one option per line:
 
-     ```
-     --server https://<username>:<access-key>@<host>
-     ```
+      ```
+      --server https://<username>:<access-key>@<host>
+      ```
 
-     On Linux/macOS, restrict access with `chmod 600 ~/.teamscale-dev.args` so the file is only readable by the user.
+      On Linux/macOS, restrict access with `chmod 600 ~/.teamscale-dev.args` so the file is only readable by the user.
 
 3. Restart the shell (and Claude Code) so any new variables are picked up.
 
 
 ## Step 6: Verify configuration against the server
 
-Run:
+Pick the command based on which credential source was detected in Step 5:
 
-```bash
-teamscale-dev verify-config
-```
+- If `TEAMSCALE_DEV_SERVERS` is set, or both `TEAMSCALE_DEV_USER` and `TEAMSCALE_DEV_ACCESSKEY` are set, run:
 
-If the command prints an error, relay the error message to the user verbatim so they can act on it. 
+  ```bash
+  teamscale-dev verify-config
+  ```
+
+- Otherwise, if `~/.teamscale-dev.args` is present, run:
+
+  ```bash
+  teamscale-dev verify-config @"${HOME}/.teamscale-dev.args"
+  ```
+
+If the command prints an error, relay the error message to the user verbatim so they can act on it.
 Common causes are an unreachable server, a wrong project ID in `.teamscale.toml`, or invalid credentials.
 
 More information can be found here: https://docs.teamscale.com/reference/cli/teamscale-dev/#the-verify-configuration-command

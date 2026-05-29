@@ -179,7 +179,9 @@ def cmd_findings_for_pr(args: argparse.Namespace) -> int:
     branch. With an MR, queries the finding churn between the MR's source
     and target branches. Without an MR, falls back to comparing the current
     branch against the repository's default branch. Only the newly added
-    findings are written to stdout.
+    findings are written to stdout, unless
+    --include-findings-in-changed-code is given, in which case findings in
+    changed code are merged in as well (deduplicated by finding ID).
     """
     config_dir = (
         Path(args.config_dir).resolve(strict=False) if args.config_dir else Path.cwd()
@@ -210,8 +212,26 @@ def cmd_findings_for_pr(args: argparse.Namespace) -> int:
 
     if not isinstance(response, dict):
         raise SystemExit(f"unexpected response (not an object): {response!r}")
-    added = response.get("addedFindings") or {}
-    findings = added.get("findings", []) if isinstance(added, dict) else []
+
+    keys = ["addedFindings"]
+    if args.include_findings_in_changed_code:
+        keys.append("findingsInChangedCode")
+
+    findings: list[Any] = []
+    seen_ids: set[str] = set()
+    for key in keys:
+        group = response.get(key) or {}
+        if not isinstance(group, dict):
+            continue
+        for finding in group.get("findings", []):
+            finding_id = (
+                finding.get("id") if isinstance(finding, dict) else None
+            )
+            if finding_id is not None:
+                if finding_id in seen_ids:
+                    continue
+                seen_ids.add(finding_id)
+            findings.append(finding)
 
     json.dump(findings, sys.stdout, indent=2)
     sys.stdout.write("\n")

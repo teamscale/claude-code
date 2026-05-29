@@ -1,6 +1,6 @@
 ---
 name: fix-findings
-description: Fetch findings and coverage from Teamscale for the given files and fix the findings, after warning if coverage is low.
+description: Fetch findings from Teamscale for the given files and fix the findings. This loads data from the Teamscale server, so the files should be committed and pushed to Git.
 argument-hint: "<file> [<file> ...]"
 ---
 

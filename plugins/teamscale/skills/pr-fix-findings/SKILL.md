@@ -1,7 +1,6 @@
 ---
 name: pr-fix-findings
-description: Fetch findings introduced on the current branch from Teamscale (PR-scoped if a pull request exists, branch-vs-base otherwise) and fix them.
-disable-model-invocation: true
+description: Fetch findings introduced on the current branch or pull request from Teamscale (PR-scoped if a pull request exists, branch-vs-base otherwise) and fix them.
 ---
 
 # Fix findings on the current branch
@@ -16,6 +15,15 @@ report a summary at the end.
 
    ```bash
    ts-agent-helper findings for-pr
+   ```
+
+   If the user indicates that findings in already-existing code that was
+   changed on the branch should also be fixed (not just findings newly
+   added on the branch), add the `--include-findings-in-changed-code`
+   flag:
+
+   ```bash
+   ts-agent-helper findings for-pr --include-findings-in-changed-code
    ```
 
    The helper prints a one-paragraph resolution banner on stderr telling

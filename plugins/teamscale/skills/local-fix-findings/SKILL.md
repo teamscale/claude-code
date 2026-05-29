@@ -1,8 +1,7 @@
 ---
 name: local-fix-findings
-description: Run pre-commit analysis on local uncommitted changes via Teamscale, then fix the resulting findings.
+description: Run pre-commit analysis on local uncommitted changes via Teamscale, then fix the resulting findings. This works for local uncommitted changes.
 argument-hint: "[<path> ...]"
-disable-model-invocation: true
 ---
 
 # Fix findings on local uncommitted changes
@@ -34,6 +33,11 @@ analysis, then fix the findings introduced by those edits.
    verbatim to the user. Do not guess findings, fall back to other tools,
    or retry — the user needs to see the real error (typically a setup,
    network, or configuration problem).
+
+2a. If the user requests to fix findings on the latest commit (that was not yet pushed), modify the parameters as follows:
+
+   - `paths` must be the list of files from the latest commit, which can be retrieved via `git diff-tree --no-commit-id --name-only -r HEAD`
+   - `uploadScope` must be `NO_CHANGE_DETECTION`
 
 3. **Triage and fix the returned findings.**
 

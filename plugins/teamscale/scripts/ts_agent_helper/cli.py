@@ -123,6 +123,14 @@ def _build_parser() -> argparse.ArgumentParser:
         ),
     )
     for_pr_parser.add_argument(
+        "--include-findings-in-changed-code",
+        action="store_true",
+        help=(
+            "additionally include findings in changed code, not just findings "
+            "newly added on the branch"
+        ),
+    )
+    for_pr_parser.add_argument(
         "--config-dir",
         default=None,
         help=(
