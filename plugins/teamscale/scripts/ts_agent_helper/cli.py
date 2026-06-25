@@ -5,7 +5,6 @@ from __future__ import annotations
 import argparse
 from typing import Optional
 
-from .coverage import cmd_coverage_for_file
 from .findings import (
     cmd_findings_flag,
     cmd_findings_for_pr,
@@ -39,7 +38,9 @@ def _build_parser() -> argparse.ArgumentParser:
             "--config-dir to override. Results are paged internally and "
             "printed as a single JSON array on stdout. Output is capped at "
             "100 findings so the JSON stays digestible; use --start/--limit "
-            "to page beyond that cap."
+            "to page beyond that cap. Each finding is simplified: the location "
+            "is collapsed to path/lines and server bookkeeping fields are "
+            "dropped."
         ),
     )
     list_parser.add_argument("path", help="local file or directory to query")
@@ -119,7 +120,8 @@ def _build_parser() -> argparse.ArgumentParser:
             "repository's default branch (origin/HEAD, falling back to "
             "local 'master' or 'main'). The resolved mode is printed as a "
             "banner on stderr; the JSON array of newly added findings is "
-            "printed on stdout."
+            "printed on stdout. Each finding is simplified: the location is "
+            "collapsed to path/lines and server bookkeeping fields are dropped."
         ),
     )
     for_pr_parser.add_argument(
@@ -178,33 +180,6 @@ def _build_parser() -> argparse.ArgumentParser:
         ),
     )
     flag_parser.set_defaults(func=cmd_findings_flag)
-
-    coverage = subparsers.add_parser(
-        "coverage", help="coverage-related commands"
-    )
-    coverage_subparsers = coverage.add_subparsers(dest="subcommand", required=True)
-
-    coverage_for_file = coverage_subparsers.add_parser(
-        "for-file",
-        help="fetch line-coverage data for a single local file or directory",
-        description=(
-            "Fetch line-coverage data for a local file or directory. The local "
-            "path is mapped to a uniform path via the surrounding "
-            ".teamscale.toml; by default the config lookup starts at the "
-            "directory of the given path. The server response is summarised "
-            "as a coverage percentage on stdout."
-        ),
-    )
-    coverage_for_file.add_argument("path", help="local file or directory to query")
-    coverage_for_file.add_argument(
-        "--config-dir",
-        default=None,
-        help=(
-            "directory from which to start the .teamscale.toml lookup "
-            "(default: the directory of the given path)"
-        ),
-    )
-    coverage_for_file.set_defaults(func=cmd_coverage_for_file)
 
     test_gaps = subparsers.add_parser(
         "test-gaps", help="test-gap related commands"

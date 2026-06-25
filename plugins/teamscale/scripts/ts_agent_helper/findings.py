@@ -24,6 +24,79 @@ def _escape_path_segment(segment: str) -> str:
     return segment.replace("/", "\\/")
 
 
+# Top-level finding fields that carry no information useful to an agent fixing
+# the finding. Dropped to keep the JSON small enough for the consumer to
+# process: 'birth' (when/where the finding first appeared), 'codeScopeName',
+# 'analysisTimestamp' and 'tasksByStatus' are all server bookkeeping.
+_DROPPED_FINDING_KEYS = frozenset(
+    {
+        "birth",
+        "codeScopeName",
+        "analysisTimestamp",
+        "tasksByStatus",
+    }
+)
+
+# Cap on the number of sibling locations retained per finding. A finding can
+# carry many siblings (e.g. all clones of a code-duplication finding); a few
+# examples are enough for an agent to act on without bloating the JSON.
+_MAX_SIBLING_LOCATIONS = 3
+
+
+def _simplify_location(location: Any) -> Any:
+    """Collapse a finding location to a path plus start/end line.
+
+    Drops the exact character offsets and the location type, which the
+    consumer does not need. If the location carries none of the recognized
+    fields (e.g. a non-text location), the original object is returned
+    unchanged so positioning information is never silently lost.
+    """
+    if not isinstance(location, dict):
+        return location
+    compact: dict[str, Any] = {}
+    path = location.get("uniformPath") or location.get("location")
+    if path is not None:
+        compact["path"] = path
+    start_line = location.get("rawStartLine")
+    end_line = location.get("rawEndLine")
+    if start_line is not None:
+        compact["startLine"] = start_line
+    # Only emit endLine when it adds information beyond startLine.
+    if end_line is not None and end_line != start_line:
+        compact["endLine"] = end_line
+    return compact or location
+
+
+def _simplify_finding(finding: Any) -> Any:
+    """Strip a finding down to the fields an agent needs to act on it."""
+    if not isinstance(finding, dict):
+        return finding
+    simplified = {
+        key: value
+        for key, value in finding.items()
+        if key not in _DROPPED_FINDING_KEYS
+    }
+    if "location" in simplified:
+        simplified["location"] = _simplify_location(simplified["location"])
+    sibling_locations = simplified.get("siblingLocations")
+    if isinstance(sibling_locations, list):
+        # Truncate long sibling lists; the consumer only needs a few examples.
+        simplified["siblingLocations"] = [
+            _simplify_location(location)
+            for location in sibling_locations[:_MAX_SIBLING_LOCATIONS]
+        ]
+    # An empty properties map carries no information.
+    if simplified.get("properties") == {}:
+        simplified.pop("properties", None)
+    return simplified
+
+
+def _emit_findings(findings: list[Any]) -> None:
+    """Write findings to stdout as a simplified JSON array."""
+    json.dump([_simplify_finding(finding) for finding in findings], sys.stdout, indent=2)
+    sys.stdout.write("\n")
+
+
 def _build_uniform_path(config: TeamscaleConfig, target: Path) -> str:
     try:
         relative = target.relative_to(config.local_base_path)
@@ -127,8 +200,7 @@ def cmd_findings_list(args: argparse.Namespace) -> int:
         )
         sys.stderr.flush()
 
-    json.dump(findings, sys.stdout, indent=2)
-    sys.stdout.write("\n")
+    _emit_findings(findings)
     return 0
 
 
@@ -233,8 +305,7 @@ def cmd_findings_for_pr(args: argparse.Namespace) -> int:
                 seen_ids.add(finding_id)
             findings.append(finding)
 
-    json.dump(findings, sys.stdout, indent=2)
-    sys.stdout.write("\n")
+    _emit_findings(findings)
     return 0
 
 
