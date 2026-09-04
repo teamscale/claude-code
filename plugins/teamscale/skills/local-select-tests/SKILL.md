@@ -1,13 +1,13 @@
 ---
 name: local-select-tests
-description: Select the tests most impacted by local code changes. Runs pre-commit analysis on the uncommitted working-tree edits, then asks Teamscale which tests are impacted (change-based test suggestion). This works for local uncommitted changes.
+description: Select the existing tests that are most impacted by local code changes. Runs pre-commit analysis on the uncommitted working-tree edits, then asks Teamscale which tests are impacted (change-based test suggestion). This works for local uncommitted changes.
 argument-hint: "[<path> ...]"
 ---
 
-# Select impacted tests for local uncommitted changes
+# Select existing impacted tests for local uncommitted changes
 
 Send the user's uncommitted working-tree edits to Teamscale and ask which
-tests are most impacted by those changes, so the user can run a focused
+of the existing tests are most impacted by those changes, so the user can run a focused
 subset instead of the whole suite. See Teamscale's documentation on
 [change-based test suggestions](https://docs.teamscale.com/reference/ui/test-suggestions/#change-based-test-suggestions)
 for background.
