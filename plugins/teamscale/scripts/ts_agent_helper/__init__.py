@@ -11,3 +11,26 @@ sources as the `teamscale-dev` CLI, in this order:
 
 Designed for Python 3.9+ using only the standard library.
 """
+
+import sys
+
+# Minimum interpreter, checked here because Python runs a package's
+# `__init__.py` before any of its submodules: this one check covers every
+# entry point and nothing can be imported without passing it. Consequence:
+# this module must stay within Python 3.6 syntax -- no `from __future__ import
+# annotations`, no walrus operator, no unquoted `dict[str, str]` -- because an
+# interpreter that cannot parse it never reaches the check and reports a
+# `SyntaxError` instead, which is the failure this exists to prevent.
+# Raising the minimum means updating the plugin README and check-setup skill.
+MINIMUM_PYTHON_VERSION = (3, 9)
+
+if sys.version_info < MINIMUM_PYTHON_VERSION:
+    sys.stderr.write(
+        "Error: the Teamscale plugin requires Python %d.%d or newer "
+        "(found %d.%d.%d at %s).\n"
+        % (MINIMUM_PYTHON_VERSION + tuple(sys.version_info[:3]) + (sys.executable,))
+    )
+    sys.stderr.write(
+        "Install a newer Python and make sure it is the interpreter found on PATH.\n"
+    )
+    raise SystemExit(1)

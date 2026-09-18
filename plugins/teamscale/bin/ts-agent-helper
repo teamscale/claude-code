@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# This launcher stays thin: it locates an interpreter, sets PYTHONPATH and hands
+# off to the Python package. Every line of logic here has to exist twice, once
+# in Bash and once in the `.cmd` sibling, and the two dialects differ enough
+# that the copies drift apart. Put new logic in `scripts/ts_agent_helper/`
+# instead; see ../../../CLAUDE.md for the convention.
+
 # Resolve the real location of this script, following symlinks.
 SOURCE="${BASH_SOURCE[0]}"
 while [ -L "$SOURCE" ]; do
@@ -20,15 +26,8 @@ else
     exit 1
 fi
 
-# The plugin documents 3.9+ as the minimum (see plugin README and the
-# check-setup skill). Enforce it here so users who skip the setup skill
-# get a clear error instead of a cryptic syntax/feature failure later.
-if ! "$PYTHON" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 9) else 1)'; then
-    PYTHON_VERSION="$("$PYTHON" -c 'import sys; print("%d.%d.%d" % sys.version_info[:3])' 2>/dev/null || echo 'unknown')"
-    echo "Error: ts-agent-helper requires Python 3.9 or newer (found $PYTHON_VERSION via '$PYTHON')." >&2
-    echo "Install a newer Python and ensure 'python3' on PATH points to it." >&2
-    exit 1
-fi
-
+# The minimum Python version is enforced inside the package, in
+# `scripts/ts_agent_helper/__init__.py`, so the rule lives in one place
+# instead of once per platform launcher.
 # Run as a package so its modules can use relative imports.
 PYTHONPATH="$SCRIPTS_DIR${PYTHONPATH:+:$PYTHONPATH}" exec "$PYTHON" -m ts_agent_helper "$@"

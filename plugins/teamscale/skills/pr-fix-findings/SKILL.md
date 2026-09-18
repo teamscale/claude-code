@@ -13,7 +13,7 @@ report a summary at the end.
 
 1. **Fetch newly added findings for the current branch:**
 
-   ```bash
+   ```
    ts-agent-helper findings for-pr
    ```
 
@@ -22,9 +22,16 @@ report a summary at the end.
    added on the branch), add the `--include-findings-in-changed-code`
    flag:
 
-   ```bash
+   ```
    ts-agent-helper findings for-pr --include-findings-in-changed-code
    ```
+
+   `ts-agent-helper` ships in the teamscale plugin's `bin/` directory. Some
+   hosts put that directory on the PATH of the shell they spawn, so the bare
+   name above resolves; others do not. If the shell reports that the command
+   is not found, locate the launcher in the teamscale plugin's `bin/`
+   directory and run it by its absolute path (`ts-agent-helper.cmd` on
+   Windows).
 
    The helper prints a one-paragraph resolution banner on stderr telling
    you which mode it resolved to:

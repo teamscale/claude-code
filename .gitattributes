@@ -1,0 +1,7 @@
+# The repository root forces LF on every file, but cmd.exe is unreliable when
+# reading a batch file with LF-only line endings -- `goto` labels in
+# particular may fail to resolve. Override it for the Windows launchers.
+#
+# This file lives inside `src/` so `release.sh` rsyncs it into the release
+# repository, where it has to apply as well.
+*.cmd text eol=crlf

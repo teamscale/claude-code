@@ -1,14 +1,11 @@
-"""Shared parser for the `~/.teamscale-dev.args` picocli at-file.
+"""Parser for the `~/.teamscale-dev.args` picocli at-file.
 
-Two callers need to read the same set of credential-related options
-from this file:
+`api.py` builds typed `TeamscaleCredentials` for in-process HTTP calls
+from the credential options found here, so the helper authenticates the
+same way `teamscale-dev` does for a user who keeps credentials in that
+file rather than in the environment.
 
-- `api.py` builds typed `TeamscaleCredentials` for in-process HTTP calls.
-- `mcp_launcher.py` translates the same options into environment
-  variables so they reach `teamscale-dev mcp`, which does not accept
-  them as CLI options on its subcommand.
-
-Both consumers share the low-level tokenization here so a change to the
+The tokenization is kept separate from `api.py` so a change to the
 options we recognize (e.g. adding `--proxy` later) lands in one place.
 """
 

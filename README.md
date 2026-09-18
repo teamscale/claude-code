@@ -36,6 +36,17 @@ The marketplace is hosted on GitHub at
 You can also browse and install plugins through the interactive UI by running
 `/plugin` and switching to the **Discover** tab.
 
+### GitHub Copilot CLI
+
+Copilot CLI reads the same plugin layout, so the plugin can be installed there
+with:
+
+```
+copilot plugin install teamscale/claude-code
+```
+
+Then run `/teamscale:check-setup` as above.
+
 ## Included plugins
 
 | Plugin | Description |

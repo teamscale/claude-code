@@ -1,9 +1,8 @@
 # Teamscale Plugin for Claude Code
 
-Skills and MCP configuration to make Teamscale's quality information
-available to Claude Code. Detect and fix findings, close test gaps on a
-pull request, run pre-commit analysis on local changes, and select the
-tests impacted by local changes.
+Skills that make Teamscale's quality information available to Claude Code.
+Detect and fix findings, close test gaps on a pull request, run pre-commit
+analysis on local changes, and select the tests impacted by local changes.
 
 ## Setup
 
@@ -13,9 +12,21 @@ Run the setup skill once:
   presence of `.teamscale.toml`, and that credentials are set in the
   environment.
 
+The plugin requires Python 3.9+, the `teamscale-dev` CLI, and `git` on PATH.
+The helper shells out to `git` to resolve the repository root and the current
+branch, so the pull-request and local-change skills cannot work without it; on
+Windows that means installing [Git for Windows](https://gitforwindows.org/).
+What the plugin does not require is a POSIX shell: it runs the same way under
+Claude Code's PowerShell tool, which is what a Windows host without Git for
+Windows offers.
+
 The plugin ships a `bin/ts-agent-helper` launcher that the skills invoke by
 bare name (no path). Claude Code adds each plugin's `bin/` directory to the
-`PATH` of the shells it spawns, so this works out of the box.
+`PATH` of its Bash tool, so the bare name resolves there. Copilot CLI adds
+nothing to `PATH`, so the skills additionally tell the agent that the launcher
+lives in the teamscale plugin's `bin/` directory and is to be run by absolute
+path when the bare name is not found. `/teamscale:check-setup` checks this and
+reports which of the two applied.
 
 ## Skills
 
