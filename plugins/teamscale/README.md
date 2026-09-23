@@ -1,8 +1,9 @@
 # Teamscale Plugin for Claude Code
 
 Skills that make Teamscale's quality information available to Claude Code.
-Detect and fix findings, close test gaps on a pull request, run pre-commit
-analysis on local changes, and select the tests impacted by local changes.
+Detect and fix findings, close test gaps on a pull request or for a ticket,
+run pre-commit analysis on local changes, and select the tests impacted by
+local changes.
 
 ## Setup
 
@@ -34,19 +35,24 @@ The `Auto-invoke` column indicates whether Claude may trigger the skill on its
 own. Skills marked `no` set `disable-model-invocation: true` and must be
 invoked explicitly via the slash-command syntax shown.
 
-| Skill                                | Source                | Scope                                             | Auto-invoke |
-|--------------------------------------|-----------------------|---------------------------------------------------|-------------|
-| `/teamscale:check-setup`             | Local environment     | Python, `teamscale-dev`, `.teamscale.toml`, creds | no          |
-| `/teamscale:pr-fix-findings`         | Teamscale PR view     | open PR for current branch, else branch vs. base  | yes         |
-| `/teamscale:pr-close-test-gaps`      | Teamscale PR view     | open PR for current branch, else branch vs. base  | yes         |
-| `/teamscale:fix-findings <files>`    | Server analysis       | listed files                                      | yes         |
-| `/teamscale:local-fix-findings`      | Pre-commit analysis   | local uncommitted changes                         | yes         |
-| `/teamscale:local-select-tests`      | Pre-commit analysis   | test suggestions for local uncommitted changes    | yes         |
+| Skill                                       | Source               | Scope                                             | Auto-invoke |
+|---------------------------------------------|----------------------|---------------------------------------------------|-------------|
+| `/teamscale:check-setup`                    | Local environment    | Python, `teamscale-dev`, `.teamscale.toml`, creds | no          |
+| `/teamscale:pr-fix-findings`                | Teamscale PR view    | open PR for current branch, else branch vs. base  | yes         |
+| `/teamscale:pr-close-test-gaps`             | Teamscale PR view    | open PR for current branch, else branch vs. base  | yes         |
+| `/teamscale:issue-close-test-gaps <ticket>` | Teamscale issue view | commits linked to the given ticket                | yes         |
+| `/teamscale:fix-findings <files>`           | Server analysis      | listed files                                      | yes         |
+| `/teamscale:local-fix-findings`             | Pre-commit analysis  | local uncommitted changes                         | yes         |
+| `/teamscale:local-select-tests`             | Pre-commit analysis  | test suggestions for local uncommitted changes    | yes         |
 
 The `pr-` prefix means the skill operates on the open pull request whose
 source branch is the current Git branch. If no such PR exists, the helper
 falls back to comparing the current branch against the repository's default
 branch (`origin/HEAD`, then local `master`/`main`).
+The `issue-` prefix means the skill takes a ticket number and operates on the
+commits Teamscale has linked to that issue, so it also works in a repository
+that does not contain the code under test (for example a separate
+test-automation repository).
 The `local-` prefix means the skill operates on uncommitted edits in the
 working tree. The prefix-less `fix-findings` takes mandatory file arguments
 and works on Teamscale's existing analysis of those files (with a coverage

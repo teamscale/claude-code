@@ -11,7 +11,7 @@ from .findings import (
     cmd_findings_list,
     cmd_findings_type_descriptors,
 )
-from .test_gaps import cmd_test_gaps_for_pr
+from .test_gaps import cmd_test_gaps_for_issue, cmd_test_gaps_for_pr
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -208,6 +208,58 @@ def _build_parser() -> argparse.ArgumentParser:
         ),
     )
     test_gaps_for_pr.set_defaults(func=cmd_test_gaps_for_pr)
+
+    test_gaps_for_issue = test_gaps_subparsers.add_parser(
+        "for-issue",
+        help="fetch the test-gap CSV for the code changed for an issue",
+        description=(
+            "Fetch the test-gap CSV from the Teamscale '/test-gaps.csv' "
+            "endpoint for all code changed in the context of the given issue "
+            "(e.g. a ticket number such as TS-1234). Git is not consulted: "
+            "the server derives both the baseline and the branch from the "
+            "commits it has linked to the issue, unless --branch names the "
+            "branch to read coverage from. By default the query also "
+            "covers the issue's child issues, because the implementation work "
+            "for a ticket is often committed against its sub-tasks. The "
+            "queried scope is printed as a banner on stderr; the filtered CSV "
+            "(already-tested rows and internal columns dropped) is printed on "
+            "stdout."
+        ),
+    )
+    test_gaps_for_issue.add_argument(
+        "issue_id",
+        metavar="ISSUE_ID",
+        help=(
+            "the issue to query, as known to Teamscale (e.g. 'TS-1234'). "
+            "Prepend the connector ('issues|133742') to disambiguate an ID "
+            "that several issue connectors of the project share"
+        ),
+    )
+    test_gaps_for_issue.add_argument(
+        "--exclude-child-issues",
+        action="store_true",
+        help=(
+            "report only the test gaps of the given issue, instead of also "
+            "reporting test gaps found in its child issues"
+        ),
+    )
+    test_gaps_for_issue.add_argument(
+        "--branch",
+        default=None,
+        help=(
+            "read coverage from this branch instead of the one the server "
+            "auto-selects from the commits linked to the issue"
+        ),
+    )
+    test_gaps_for_issue.add_argument(
+        "--config-dir",
+        default=None,
+        help=(
+            "directory from which to start the .teamscale.toml lookup "
+            "(default: current working directory)"
+        ),
+    )
+    test_gaps_for_issue.set_defaults(func=cmd_test_gaps_for_issue)
 
     return parser
 

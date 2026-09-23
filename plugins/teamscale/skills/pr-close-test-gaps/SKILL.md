@@ -48,23 +48,9 @@ that are not yet covered.
    - Method Region Lines: The lines for the method as `[start - end]`
    - Test State: Whether this is an untested addition (new method) or untested change (modified method) 
 
-2. **Decide which gaps to close.** Each row in the CSV is a candidate
-   gap. Pick the ones most worth covering.
-   We give no prior ordering; use your judgement based on the change
-   content (e.g. new public APIs, branchy logic, error paths).
+   If there are no gaps, the helper prints `No test gaps in the queried
+   scope.` instead of the CSV, and exits successfully.
 
-3. **Detect the test framework and conventions** by reading existing
-   test files in the repo. Do not assume a framework — match what the
-   project already uses (unit vs integration vs other; folder layout;
-   naming). If the repo's `CLAUDE.md` or test directory makes the
-   convention obvious, follow it.
+2. **Close the gaps.**
 
-4. **Generate tests** for the chosen gaps. Run them after generating to
-   confirm they pass.
-
-5. **Summarise.** Report which gaps were closed (with test file + test
-   name) and which were skipped (with a one-sentence reason).
-
-Note: Test gaps are computed on the Teamscale server based on coverage from the CI pipeline, once the new tests have been 
-pushed to Git. Hence, fetching the test-gap information right after creating the tests does not work. Instead, instruct 
-the user to check the test-gap information once the CI pipeline has finished. 
+To understand how to select gaps, write the tests and report the result, read ../../shared/closing-test-gaps.md
