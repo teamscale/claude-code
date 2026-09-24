@@ -42,7 +42,8 @@ Copilot CLI reads the same plugin layout, so the plugin can be installed there
 with:
 
 ```
-copilot plugin install teamscale/claude-code
+copilot plugin marketplace add teamscale/claude-code
+copilot plugin install teamscale@teamscale-plugins
 ```
 
 Then run `/teamscale:check-setup` as above.
