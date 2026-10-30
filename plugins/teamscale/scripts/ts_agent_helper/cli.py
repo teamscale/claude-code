@@ -11,7 +11,14 @@ from .findings import (
     cmd_findings_list,
     cmd_findings_type_descriptors,
 )
+from .impacted_tests import cmd_impacted_tests
+from .precommit import cmd_pre_commit
 from .test_gaps import cmd_test_gaps_for_issue, cmd_test_gaps_for_pr
+from .verify_config import cmd_verify_config
+
+
+# Exit codes: 0 success; 1 error (raise SystemExit("error: ...")); 2 argparse
+# usage errors — don't reuse; 3 not configured (EXIT_NOT_CONFIGURED).
 
 
 def _build_parser() -> argparse.ArgumentParser:
@@ -260,6 +267,118 @@ def _build_parser() -> argparse.ArgumentParser:
         ),
     )
     test_gaps_for_issue.set_defaults(func=cmd_test_gaps_for_issue)
+
+    pre_commit_parser = subparsers.add_parser(
+        "pre-commit",
+        help="analyze local changes on the Teamscale server and list the findings",
+        description=(
+            "Upload local changes to the Teamscale pre-commit analysis and "
+            "wait for its findings. By default, uploads the files below the "
+            "given paths that Git reports as added, modified, deleted or "
+            "untracked. Prints one finding per line on stdout in the GCC "
+            "diagnostics format '<file>:<line>:<column>: <error|warning>: "
+            "<message>'. 'error' marks a red finding, 'warning' a yellow one. "
+            "A 'note' line marks a further location of the finding above it."
+        ),
+    )
+    pre_commit_parser.add_argument(
+        "paths",
+        nargs="*",
+        metavar="PATH",
+        help="files or directories to analyze (default: current directory)",
+    )
+    pre_commit_parser.add_argument(
+        "--no-change-detection",
+        action="store_true",
+        help=(
+            "upload all files below the given paths instead of only the files "
+            "with uncommitted changes"
+        ),
+    )
+    pre_commit_parser.add_argument(
+        "--only-pre-commit-findings",
+        action="store_true",
+        help=(
+            "report only findings introduced by the uploaded changes, not "
+            "findings already present on the server"
+        ),
+    )
+    pre_commit_parser.add_argument(
+        "--severity",
+        choices=["RED", "YELLOW"],
+        type=str.upper,
+        default=None,
+        help="report only findings of this severity",
+    )
+    pre_commit_parser.add_argument(
+        "--category",
+        action="append",
+        default=[],
+        help="report only findings of these categories (comma-separated, repeatable)",
+    )
+    pre_commit_parser.set_defaults(func=cmd_pre_commit)
+
+    impacted_tests_parser = subparsers.add_parser(
+        "impacted-tests",
+        help="list the tests impacted by the latest commit on a branch",
+        description=(
+            "List the tests impacted by the latest commit on the current "
+            "branch, or on the pre-commit branch with --on-pre-commit-branch. "
+            "Prints the uniform path of one test per line on stdout, sorted by "
+            "likely impact. The AUTO strategy uses test-wise coverage if the "
+            "server has any, and source-code similarity otherwise. Similarity "
+            "requires Teamscale 2026.5 or newer."
+        ),
+    )
+    impacted_tests_parser.add_argument(
+        "path",
+        nargs="?",
+        default=None,
+        help=(
+            "file or directory from which to start the .teamscale.toml lookup "
+            "(default: current working directory)"
+        ),
+    )
+    impacted_tests_parser.add_argument(
+        "--on-pre-commit-branch",
+        action="store_true",
+        help="query the pre-commit branch that the 'pre-commit' subcommand uploads to",
+    )
+    impacted_tests_parser.add_argument(
+        "--strategy",
+        choices=["AUTO", "COVERAGE", "SIMILARITY"],
+        type=str.upper,
+        default="AUTO",
+        help="how to select the tests (default: AUTO)",
+    )
+    impacted_tests_parser.add_argument(
+        "--max-count",
+        type=int,
+        default=None,
+        help="maximum number of tests to list (default: no limit)",
+    )
+    impacted_tests_parser.set_defaults(func=cmd_impacted_tests)
+
+    verify_config_parser = subparsers.add_parser(
+        "verify-config",
+        help="check the .teamscale.toml against the Teamscale server",
+        description=(
+            "Check that the Teamscale server configured in .teamscale.toml is "
+            "reachable and recent enough, that the credentials work, and that "
+            "the project, the branch and the directory exist on the server. "
+            "Prints 'Verification successful.' on stdout and exits 0 if all "
+            "checks pass. Otherwise prints 'error: ...' on stderr and exits 1."
+        ),
+    )
+    verify_config_parser.add_argument(
+        "--config-dir",
+        default=None,
+        help=(
+            "directory to verify, and from which to start the .teamscale.toml "
+            "lookup (default: current working directory)"
+        ),
+    )
+    verify_config_parser.set_defaults(func=cmd_verify_config)
 
     return parser
 

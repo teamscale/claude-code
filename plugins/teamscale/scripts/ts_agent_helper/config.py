@@ -6,6 +6,7 @@ Mirrors the lookup strategy implemented in
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 from typing import Optional
 
@@ -14,9 +15,16 @@ from .toml_parser import TomlParseError, parse_toml
 
 CONFIG_FILE_NAME = ".teamscale.toml"
 
+# Exit codes shared by every subcommand.
+EXIT_NOT_CONFIGURED = 3
+
 
 class ConfigError(Exception):
     pass
+
+
+class ConfigNotFoundError(ConfigError):
+    """Raised when no `.teamscale.toml` exists anywhere in the search path."""
 
 
 class TeamscaleConfig:
@@ -77,6 +85,38 @@ def parse_code_path(raw: str) -> list[str]:
     if current:
         segments.append("".join(current))
     return segments
+
+
+def to_uniform_path(config: TeamscaleConfig, target: Path) -> str:
+    """Return the uniform path on the Teamscale server for a local path.
+
+    Raises `SystemExit` if `target` is not below the configured local base path.
+    """
+    try:
+        relative = target.relative_to(config.local_base_path)
+    except ValueError as e:
+        raise SystemExit(
+            f"error: '{target}' is not below the configured local base path "
+            f"'{config.local_base_path}'"
+        ) from e
+    relative_parts = [p for p in relative.parts if p not in ("", ".")]
+    segments = config.project_path_segments + relative_parts
+    return "/".join(segment.replace("/", "\\/") for segment in segments)
+
+
+def to_local_path(config: TeamscaleConfig, uniform_path: str) -> Optional[Path]:
+    """Return the local path for a uniform path on the Teamscale server.
+
+    Returns `None` if the uniform path is outside the configured project path.
+    """
+    try:
+        segments = parse_code_path(uniform_path)
+    except ConfigError:
+        return None
+    prefix = config.project_path_segments
+    if segments[: len(prefix)] != prefix:
+        return None
+    return config.local_base_path.joinpath(*segments[len(prefix):])
 
 
 def read_config(start_dir: Path) -> TeamscaleConfig:
@@ -140,7 +180,7 @@ def read_config(start_dir: Path) -> TeamscaleConfig:
         cur = parent
 
     if not found_any:
-        raise ConfigError(
+        raise ConfigNotFoundError(
             f"no {CONFIG_FILE_NAME} found from {start_dir} upwards to filesystem root"
         )
     if not server_url:
@@ -157,3 +197,32 @@ def read_config(start_dir: Path) -> TeamscaleConfig:
         project_path_segments=project_path,
         local_base_path=local_base_path,
     )
+
+
+def _not_configured_message(start_dir: Path) -> str:
+    """Guidance printed when no `.teamscale.toml` is found."""
+    return (
+        f"not-configured: no {CONFIG_FILE_NAME} found from {start_dir} upwards "
+        "to the filesystem root.\n"
+        "\n"
+        "This repository is not set up for Teamscale, so Teamscale skills "
+        "(findings, test selection, test gaps) cannot run here yet.\n"
+        "\n"
+        "Explain this to the user, then ask whether this project is already "
+        "set up on a Teamscale server:\n"
+        f"  - If yes, or they are unsure: the {CONFIG_FILE_NAME} is just "
+        "missing locally. Suggest running /teamscale:check-setup, which will "
+        "offer to create one.\n"
+        "  - If no: this repository is not on Teamscale yet, so stop here.\n"
+    )
+
+
+def read_config_or_exit(start_dir: Path) -> TeamscaleConfig:
+    """Read the Teamscale config, or exit the process with an actionable message."""
+    try:
+        return read_config(start_dir)
+    except ConfigNotFoundError:
+        sys.stderr.write(_not_configured_message(start_dir))
+        raise SystemExit(EXIT_NOT_CONFIGURED)
+    except ConfigError as e:
+        raise SystemExit(f"error: {e}") from e

@@ -56,10 +56,8 @@ Then run `/teamscale:check-setup` as above.
 
 ## Requirements
 
-The plugins in this marketplace integrate with a running Teamscale instance and
-rely on the [`teamscale-dev`](https://docs.teamscale.com/reference/cli/teamscale-dev/)
-CLI. See the individual plugin README for the exact prerequisites and setup
-steps.
+The plugins in this marketplace integrate with a running Teamscale instance.
+See the individual plugin README for the exact prerequisites and setup steps.
 
 ## Support
 

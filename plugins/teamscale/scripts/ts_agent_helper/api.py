@@ -37,6 +37,18 @@ SERVERS_ENV = "TEAMSCALE_DEV_SERVERS"
 # matching the CLI's `CredentialsUrlUtils` constant of the same name.
 _TRUST_ALL_CERTIFICATES_FRAGMENT = "trust-all-certificates"
 
+class TeamscaleHttpError(SystemExit):
+    """Raised for a non-2xx response; `status` holds the HTTP status code.
+
+    Extends `SystemExit` so that a caller without special handling exits with
+    the message, the same as for any other request failure.
+    """
+
+    def __init__(self, message: str, status: int) -> None:
+        super().__init__(message)
+        self.status = status
+
+
 @dataclass(frozen=True)
 class TeamscaleCredentials:
     """Resolved credentials for a single Teamscale server."""
@@ -330,7 +342,7 @@ def _send_request(
                 f"\nCheck the credentials configured via {USER_ENV}/{ACCESSKEY_ENV} "
                 f"or {SERVERS_ENV}."
             )
-        raise SystemExit(message) from e
+        raise TeamscaleHttpError(message, e.code) from e
     except urllib.error.URLError as e:
         raise SystemExit(f"failed to reach {url}: {e.reason}") from e
 
@@ -367,3 +379,14 @@ def api_request_text(
         server_url, api_path, credentials, method, params, json_body=None,
         accept=accept,
     )
+
+
+def get_server_version(
+    server_url: str, credentials: TeamscaleCredentials
+) -> tuple[int, int]:
+    """Return the `(major, minor)` API version of the Teamscale server."""
+    response = api_request(server_url, "/api/version", credentials)
+    max_version = response.get("maxApiVersion") if isinstance(response, dict) else None
+    if not isinstance(max_version, dict):
+        raise SystemExit(f"unexpected response from /api/version: {response!r}")
+    return int(max_version.get("major", 0)), int(max_version.get("minor", 0))

@@ -98,4 +98,4 @@ context of a ticket and are not yet covered.
 
 2. **Close the gaps.**
 
-To understand how to select gaps, write the tests and report the result, read ../../shared/closing-test-gaps.md
+To understand how to select gaps, write the tests and report the result, read ../shared/closing-test-gaps.md

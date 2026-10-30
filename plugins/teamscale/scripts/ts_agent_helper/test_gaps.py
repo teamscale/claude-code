@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any, Callable, NamedTuple, Optional
 
 from .api import TeamscaleCredentials, api_request_text, get_credentials
-from .config import ConfigError, TeamscaleConfig, read_config
+from .config import TeamscaleConfig, read_config_or_exit
 from .pr_context import (
     print_resolution_banner,
     repo_root,
@@ -121,10 +121,7 @@ def _read_config_for_command(
     )
     if not config_dir.is_dir():
         raise SystemExit(f"error: --config-dir is not a directory: {config_dir}")
-    try:
-        return config_dir, read_config(config_dir)
-    except ConfigError as e:
-        raise SystemExit(f"error: {e}") from e
+    return config_dir, read_config_or_exit(config_dir)
 
 
 # Printed instead of a header-only CSV. An empty result is a legitimate

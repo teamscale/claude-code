@@ -31,11 +31,11 @@ Targeted clean-up of one or more files using Teamscale's existing analysis.
 
 3. **Triage and fix.**
 
-To understand finding priorities and fixing strategies, read ../../shared/finding-priorities.md
+To understand finding priorities and fixing strategies, read ../shared/finding-priorities.md
 
-To get additional information about findings (finding type descriptions) read ../../shared/finding-type-descriptions.md
+To get additional information about findings (finding type descriptions) read ../shared/finding-type-descriptions.md
 
-For flagging findings, read ../../shared/finding-flagging.md
+For flagging findings, read ../shared/finding-flagging.md
 
 4. **Summarise.** Print the three buckets (fixed / tolerated / skipped) as
    described in the priorities snippet.

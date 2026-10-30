@@ -9,11 +9,13 @@ local changes.
 
 Run the setup skill once:
 
-- `/teamscale:check-setup`: verifies Python 3.9+, the `teamscale-dev` CLI, the
-  presence of `.teamscale.toml`, and that credentials are set in the
-  environment.
+- `/teamscale:check-setup`: verifies Python 3.9+, `git`, the presence of
+  `.teamscale.toml`, that credentials are configured, and that the Teamscale
+  server accepts them.
 
-The plugin requires Python 3.9+, the `teamscale-dev` CLI, and `git` on PATH.
+The plugin requires Python 3.9+, `git` on PATH, and a Teamscale server of
+version 2026.2 or newer. Selecting tests by source-code similarity requires
+Teamscale 2026.5 or newer.
 The helper shells out to `git` to resolve the repository root and the current
 branch, so the pull-request and local-change skills cannot work without it; on
 Windows that means installing [Git for Windows](https://gitforwindows.org/).
@@ -37,7 +39,7 @@ invoked explicitly via the slash-command syntax shown.
 
 | Skill                                       | Source               | Scope                                             | Auto-invoke |
 |---------------------------------------------|----------------------|---------------------------------------------------|-------------|
-| `/teamscale:check-setup`                    | Local environment    | Python, `teamscale-dev`, `.teamscale.toml`, creds | no          |
+| `/teamscale:check-setup`                    | Local environment    | Python, `git`, `.teamscale.toml`, creds, server   | no          |
 | `/teamscale:pr-fix-findings`                | Teamscale PR view    | open PR for current branch, else branch vs. base  | yes         |
 | `/teamscale:pr-close-test-gaps`             | Teamscale PR view    | open PR for current branch, else branch vs. base  | yes         |
 | `/teamscale:issue-close-test-gaps <ticket>` | Teamscale issue view | commits linked to the given ticket                | yes         |

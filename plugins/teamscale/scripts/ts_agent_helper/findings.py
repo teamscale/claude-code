@@ -10,18 +10,13 @@ from pathlib import Path
 from typing import Any
 
 from .api import API_VERSION, PAGE_SIZE, api_request, get_credentials
-from .config import ConfigError, TeamscaleConfig, read_config
+from .config import read_config_or_exit, to_uniform_path
 from .pr_context import (
     current_git_branch,
     print_resolution_banner,
     repo_root,
     resolve_pr_context,
 )
-
-
-def _escape_path_segment(segment: str) -> str:
-    """Backslash-escape forward slashes in a uniform-path segment."""
-    return segment.replace("/", "\\/")
 
 
 # Top-level finding fields that carry no information useful to an agent fixing
@@ -97,19 +92,6 @@ def _emit_findings(findings: list[Any]) -> None:
     sys.stdout.write("\n")
 
 
-def _build_uniform_path(config: TeamscaleConfig, target: Path) -> str:
-    try:
-        relative = target.relative_to(config.local_base_path)
-    except ValueError as e:
-        raise SystemExit(
-            f"error: '{target}' is not below the configured local base path "
-            f"'{config.local_base_path}'"
-        ) from e
-    relative_parts = [p for p in relative.parts if p not in ("", ".")]
-    segments = config.project_path_segments + relative_parts
-    return "/".join(_escape_path_segment(s) for s in segments)
-
-
 def cmd_findings_list(args: argparse.Namespace) -> int:
     target = Path(args.path).resolve(strict=False)
     if not target.exists():
@@ -123,13 +105,10 @@ def cmd_findings_list(args: argparse.Namespace) -> int:
             )
     else:
         config_search_dir = target if target.is_dir() else target.parent
-    try:
-        config = read_config(config_search_dir)
-    except ConfigError as e:
-        raise SystemExit(f"error: {e}") from e
+    config = read_config_or_exit(config_search_dir)
 
     credentials = get_credentials(config.server_url)
-    uniform_path = _build_uniform_path(config, target)
+    uniform_path = to_uniform_path(config, target)
     api_path = (
         f"/api/v{API_VERSION}/projects/"
         f"{urllib.parse.quote(config.project_id, safe='')}"
@@ -260,10 +239,7 @@ def cmd_findings_for_pr(args: argparse.Namespace) -> int:
     )
     if not config_dir.is_dir():
         raise SystemExit(f"error: --config-dir is not a directory: {config_dir}")
-    try:
-        config = read_config(config_dir)
-    except ConfigError as e:
-        raise SystemExit(f"error: {e}") from e
+    config = read_config_or_exit(config_dir)
 
     credentials = get_credentials(config.server_url)
     git_root = repo_root(config_dir)
@@ -316,10 +292,7 @@ def cmd_findings_flag(args: argparse.Namespace) -> int:
     )
     if not config_dir.is_dir():
         raise SystemExit(f"error: --config-dir is not a directory: {config_dir}")
-    try:
-        config = read_config(config_dir)
-    except ConfigError as e:
-        raise SystemExit(f"error: {e}") from e
+    config = read_config_or_exit(config_dir)
 
     credentials = get_credentials(config.server_url)
     branch = config.project_branch
@@ -376,10 +349,7 @@ def cmd_findings_type_descriptors(args: argparse.Namespace) -> int:
     if not config_dir.is_dir():
         raise SystemExit(f"error: --config-dir is not a directory: {config_dir}")
 
-    try:
-        config = read_config(config_dir)
-    except ConfigError as e:
-        raise SystemExit(f"error: {e}") from e
+    config = read_config_or_exit(config_dir)
 
     credentials = get_credentials(config.server_url)
     body = _read_type_descriptors_body(args)

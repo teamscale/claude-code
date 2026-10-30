@@ -1,6 +1,6 @@
 ---
 name: check-setup
-description: Checks the setup of the Teamscale integration, especially whether the `teamscale-dev` tool is installed properly, whether a `.teamscale.toml` file is present and whether the Teamscale server is reachable.
+description: Checks the setup of the Teamscale integration, especially whether Python and the plugin's helper work, whether a `.teamscale.toml` file is present, whether credentials are configured and whether the Teamscale server is reachable.
 disable-model-invocation: true
 ---
 
@@ -38,19 +38,7 @@ If no interpreter is found, or the version is below 3.9, tell the user that the 
 or newer and ask them to install it (e.g. via their package manager or from https://www.python.org/downloads/).
 
 
-## Step 2: `teamscale-dev` installed and recent
-
-Run:
-
-```bash
-teamscale-dev --version
-```
-
-The required minimum version is **2026.3.0**. If the command is not found, or the version is older than 2026.3.0, point
-the user to the installation guide at https://docs.teamscale.com/howto/integrating-with-your-ide/other-ides/#installing-teamscale-dev
-
-
-## Step 3: `git` available
+## Step 2: `git` available
 
 Run:
 
@@ -64,7 +52,7 @@ PATH, and stop.
 On Windows, `git` comes from [Git for Windows](https://gitforwindows.org/).
 
 
-## Step 4: `ts-agent-helper` reachable
+## Step 3: `ts-agent-helper` reachable
 
 Run:
 
@@ -82,7 +70,7 @@ the launcher in the teamscale plugin's `bin/` directory, run it by its absolute
 path to confirm it works, and report the path.
 
 
-## Step 5: `.teamscale.toml` present
+## Step 4: `.teamscale.toml` present
 
 Check whether `.teamscale.toml` exists at the repository root (the current working directory).
 
@@ -103,38 +91,9 @@ path = "/"
 
 Refer the user to https://docs.teamscale.com/reference/teamscale-toml/ for the full format and additional options. Only create the file after the user confirms the values.
 
-## Step 6: Teamscale server version
+## Step 5: Credentials available
 
-Read the `[server].url` from `.teamscale.toml` and fetch the public version endpoint (no authentication required):
-
-On Linux/macOS:
-
-```bash
-curl -fsS "<URL>/api/version"
-```
-
-On Windows:
-
-```powershell
-Invoke-RestMethod "<URL>/api/version"
-```
-
-Do not use `curl` on Windows: PowerShell 5.1 aliases it to `Invoke-WebRequest`, which rejects the `-fsS` flags, and
-PowerShell 6 and later dropped the alias entirely.
-
-Replace `<URL>` with the value from the file (strip any trailing `/` so the path becomes `<URL>/api/version`). Example response:
-
-```json
-{"maxApiVersion":{"major":2026,"minor":3,"patch":2},"minApiVersion":{"major":5,"minor":7,"patch":0},"adminContact":"..."}
-```
-
-Inspect `maxApiVersion`. The minimum required version is **2026.2** (i.e. `major > 2026`, or `major == 2026 && minor >= 2`). If it is older, tell the user the Teamscale server needs to be upgraded and stop.
-
-If the request fails (connection refused, timeout, non-2xx status), tell the user the server is unreachable and to verify the `url` in `.teamscale.toml` and their network/VPN connection. Stop on failure.
-
-## Step 7: Credentials available
-
-Credentials can be supplied in three ways (matching `teamscale-dev`):
+Credentials can be supplied in three ways:
 
 - The per-server `TEAMSCALE_DEV_SERVERS` environment variable (a whitespace-separated list of `https://user:accesskey@host/path` URLs).
 - The `TEAMSCALE_DEV_USER` / `TEAMSCALE_DEV_ACCESSKEY` environment variables (used as a fallback for any server URL not covered by `TEAMSCALE_DEV_SERVERS`).
@@ -204,35 +163,24 @@ If none of these sources is configured, instruct the user:
    new variables are picked up.
 
 
-## Step 8: Verify configuration against the server
+## Step 6: Verify configuration against the server
 
-Pick the command based on which credential source was detected in Step 7:
+Run:
 
-- If `TEAMSCALE_DEV_SERVERS` is set, or both `TEAMSCALE_DEV_USER` and `TEAMSCALE_DEV_ACCESSKEY` are set, run:
+```
+ts-agent-helper verify-config
+```
 
-  ```bash
-  teamscale-dev verify-config
-  ```
+If the command is not found, run the launcher by the absolute path found in Step 3.
 
-- Otherwise, if `~/.teamscale-dev.args` is present, run:
-
-  On Linux/macOS:
-
-  ```bash
-  teamscale-dev verify-config @"${HOME}/.teamscale-dev.args"
-  ```
-
-  On Windows:
-
-  ```powershell
-  teamscale-dev verify-config @"$env:USERPROFILE\.teamscale-dev.args"
-  ```
+The command checks that the server is reachable and runs Teamscale 2026.2 or newer, that the credentials work, and
+that the project, the branch and the current directory exist on the server. On success, it prints
+`Verification successful.` and exits with code 0.
 
 If the command prints an error, relay the error message to the user verbatim so they can act on it.
-Common causes are an unreachable server, a wrong project ID in `.teamscale.toml`, or invalid credentials.
+If the server is unreachable, also tell the user to verify the `url` in `.teamscale.toml` and their network/VPN
+connection. If the server is too old, tell the user that the Teamscale server needs to be upgraded.
 
-More information can be found here: https://docs.teamscale.com/reference/cli/teamscale-dev/#the-verify-configuration-command
+## Step 7: Report success
 
-## Step 9: Report success
-
-If all previous steps passed, tell the user the Teamscale setup looks fine. Add a note that **if they changed environment variables, the `.teamscale.toml`, or installed/upgraded `teamscale-dev`, they may need to restart the agent host (Claude Code or Copilot CLI)** for the changes to take effect.
+If all previous steps passed, tell the user the Teamscale setup looks fine. Add a note that **if they changed environment variables or the `.teamscale.toml`, they may need to restart the agent host (Claude Code or Copilot CLI)** for the changes to take effect.

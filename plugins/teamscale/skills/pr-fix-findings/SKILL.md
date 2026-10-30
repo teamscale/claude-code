@@ -1,6 +1,6 @@
 ---
 name: pr-fix-findings
-description: Fetch findings introduced on the current branch or pull request from Teamscale (PR-scoped if a pull request exists, branch-vs-base otherwise) and fix them.
+description: Fetch findings introduced on the current branch or pull request from Teamscale (PR-scoped if a pull request exists, branch-vs-base otherwise) and fix them. Requires the branch to be pushed and analysed; for uncommitted or unpushed changes use local-fix-findings.
 ---
 
 # Fix findings on the current branch
@@ -56,11 +56,11 @@ report a summary at the end.
 
 2. **Triage and fix.**
 
-To understand finding priorities and fixing strategies, read ../../shared/finding-priorities.md
+To understand finding priorities and fixing strategies, read ../shared/finding-priorities.md
 
-To get additional information about findings (finding type descriptions) read ../../shared/finding-type-descriptions.md
+To get additional information about findings (finding type descriptions) read ../shared/finding-type-descriptions.md
 
-For flagging findings, read ../../shared/finding-flagging.md
+For flagging findings, read ../shared/finding-flagging.md
 
 3. **Summarise.** At the end, print the three buckets (fixed / tolerated /
    skipped) as described in the priorities snippet.
